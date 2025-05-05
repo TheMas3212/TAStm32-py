@@ -7,8 +7,8 @@ import gc
 import psutil
 import struct
 
-import tastm32.internal.serial_helper
-import tastm32.internal.argparse_helper
+import tastm32.internal.serial_helper as serial_helper
+import tastm32.internal.argparse_helper as argparse_helper
 import tastm32
 
 

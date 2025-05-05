@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import serial
 import time
-import serial_helper
-import argparse_helper
+
+import tastm32.internal.serial_helper as serial_helper
+import tastm32.internal.argparse_helper as argparse_helper
 import tastm32
 
 def main():

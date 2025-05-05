@@ -6,13 +6,13 @@ import struct
 import time
 import gc
 
-import tastm32.internal.serial_helper
-import tastm32.internal.argparse_helper
-import tastm32.internal.r08
-import tastm32.internal.r16m
-import tastm32.internal.m64
-import tastm32.internal.dtm
-import tastm32.internal.rgen
+import tastm32.internal.serial_helper as serial_helper
+import tastm32.internal.argparse_helper as argparse_helper
+import tastm32.internal.r08 as r08
+import tastm32.internal.r16m as r16m
+import tastm32.internal.m64 as m64
+import tastm32.internal.dtm as dtm
+import tastm32.internal.rgen as rgen
 
 DEBUG = False
 
