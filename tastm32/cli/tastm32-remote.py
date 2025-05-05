@@ -6,23 +6,6 @@ import tastm32
 import psutil
 import struct
 
-if(os.name == 'nt'):
-    psutil.Process().nice(psutil.REALTIME_PRIORITY_CLASS)
-else:
-    psutil.Process().nice(20)
-
-gc.disable()
-
-parser = argparse_helper.audio_parser()
-args = parser.parse_args()
-
-DEBUG = args.debug
-
-if args.serial == None:
-    dev = tastm32.TAStm32(serial_helper.select_serial_port())
-else:
-    dev = tastm32.TAStm32(args.serial)
-ser = dev
 
 bmap = {
   "u": b"A\x08\x00A\x00\x00",
@@ -43,31 +26,54 @@ int_to_byte_struct = struct.Struct('B')
 def int_to_byte(interger):
     return int_to_byte_struct.pack(interger)
 
-ser.write(b'R')
-time.sleep(0.1)
-cmd = ser.read(2)
-print(bytes(cmd))
 
-# set up the SNES correctly
-ser.write(b'SAS\x80\x00')
-time.sleep(0.1)
-cmd = ser.read(2)
-print(bytes(cmd))
+def main():
+    if os.name == 'nt':
+        psutil.Process().nice(psutil.REALTIME_PRIORITY_CLASS)
+    else:
+        psutil.Process().nice(20)
 
-ser.write(b'QA0')
-time.sleep(0.1)
+    gc.disable()
 
-ser.ser.reset_input_buffer()
+    parser = argparse_helper.audio_parser()
+    args = parser.parse_args()
 
-ser.write(bytes([65,0,0]))
+    DEBUG = args.debug
 
-while True:
-  line = input()
-  if line in bmap:
-    ser.write(bmap[line])
-  else:
-    try:
-      ser.write(b"A" + int_to_byte(int(line[0:2], 16)) + int_to_byte(int(line[2:4], 16)))
-    except:
-      pass
+    if args.serial == None:
+        dev = tastm32.TAStm32(serial_helper.select_serial_port())
+    else:
+        dev = tastm32.TAStm32(args.serial)
+    ser = dev
 
+
+    ser.write(b'R')
+    time.sleep(0.1)
+    cmd = ser.read(2)
+    print(bytes(cmd))
+
+    # set up the SNES correctly
+    ser.write(b'SAS\x80\x00')
+    time.sleep(0.1)
+    cmd = ser.read(2)
+    print(bytes(cmd))
+
+    ser.write(b'QA0')
+    time.sleep(0.1)
+
+    ser.ser.reset_input_buffer()
+
+    ser.write(bytes([65,0,0]))
+
+    while True:
+        line = input()
+        if line in bmap:
+            ser.write(bmap[line])
+        else:
+            try:
+                ser.write(b"A" + int_to_byte(int(line[0:2], 16)) + int_to_byte(int(line[2:4], 16)))
+            except:
+                pass
+
+if __name__ == "__main__":
+    main()

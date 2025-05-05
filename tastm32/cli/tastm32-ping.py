@@ -35,5 +35,4 @@ def main():
     ping(dev)
 
 if __name__ == "__main__":
-    print("if name")
     main()

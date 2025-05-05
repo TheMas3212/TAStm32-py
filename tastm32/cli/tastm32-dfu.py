@@ -4,18 +4,22 @@ import serial_helper
 import argparse_helper
 import tastm32
 
-parser = argparse_helper.audio_parser()
-args = parser.parse_args()
+def main():
+    parser = argparse_helper.audio_parser()
+    args = parser.parse_args()
 
-if args.serial == None:
-    dev = tastm32.TAStm32(serial_helper.select_serial_port())
-else:
-    dev = tastm32.TAStm32(args.serial)
+    if args.serial == None:
+        dev = tastm32.TAStm32(serial_helper.select_serial_port())
+    else:
+        dev = tastm32.TAStm32(args.serial)
 
-# connect to device
-ser = dev
+    # connect to device
+    ser = dev
 
-print("--- Sending command to jump to DFU mode")
+    print("--- Sending command to jump to DFU mode")
 
-ser.write(b'\xDF')
-time.sleep(0.1)
+    ser.write(b'\xDF')
+    time.sleep(0.1)
+
+if __name__ == "__main__":
+    main()

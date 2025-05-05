@@ -4,16 +4,6 @@ import serial_helper
 import argparse_helper
 import tastm32
 
-parser = argparse_helper.audio_parser()
-args = parser.parse_args()
-
-if args.serial == None:
-    dev = tastm32.TAStm32(serial_helper.select_serial_port())
-else:
-    dev = tastm32.TAStm32(args.serial)
-
-tastm32.DEBUG = args.debug
-
 def readUntil(dev, char):
   while True:
     try:
@@ -98,16 +88,29 @@ def readVarArray(dev):
     if arraysize == 0:
       return items
 
-print("--- Sending command dump info block")
+def main():
+    parser = argparse_helper.audio_parser()
+    args = parser.parse_args()
 
-dev.write(b'I')
-readUntil(dev, b'I')
-fields = readVarInt(dev)
-print(f"--- fields: {fields}")
-print("--- reading headers")
-headers = readVarArray(dev)
-print("--- reading values")
-values = readVarArray(dev)
-fields = dict([*zip(headers, values)])
-print("---fields", json.dumps(fields, indent=2))
+    if args.serial == None:
+        dev = tastm32.TAStm32(serial_helper.select_serial_port())
+    else:
+        dev = tastm32.TAStm32(args.serial)
 
+    tastm32.DEBUG = args.debug
+
+    print("--- Sending command dump info block")
+
+    dev.write(b'I')
+    readUntil(dev, b'I')
+    fields = readVarInt(dev)
+    print(f"--- fields: {fields}")
+    print("--- reading headers")
+    headers = readVarArray(dev)
+    print("--- reading values")
+    values = readVarArray(dev)
+    fields = dict([*zip(headers, values)])
+    print("---fields", json.dumps(fields, indent=2))
+
+if __name__ == "__main__":
+    main()
