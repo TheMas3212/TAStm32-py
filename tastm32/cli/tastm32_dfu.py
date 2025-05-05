@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import serial, time
+import serial
+import time
 import serial_helper
 import argparse_helper
 import tastm32

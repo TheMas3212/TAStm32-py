@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-import serial, time, json
-import serial_helper
-import argparse_helper
+import serial
+import time
+import json
+
+import tastm32.internal.serial_helper
+import tastm32.internal.argparse_helper
 import tastm32
 
 def readUntil(dev, char):

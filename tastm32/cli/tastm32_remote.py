@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-import serial, sys, time, os, gc
-import serial_helper
-import argparse_helper
-import tastm32
+import serial
+import sys
+import time
+import os
+import gc
 import psutil
 import struct
+
+import tastm32.internal.serial_helper
+import tastm32.internal.argparse_helper
+import tastm32
 
 
 bmap = {

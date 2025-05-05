@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import serial_helper
-import argparse_helper
-import tastm32
 import time
 import multiprocessing as mp
 import queue
 from inputs import devices
+
+import tastm32.internal.serial_helper
+import tastm32.internal.argparse_helper
+import tastm32
 
 #Triggers: 0-255
 #ABS_Z is left trigger
