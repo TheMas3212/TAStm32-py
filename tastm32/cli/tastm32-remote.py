@@ -70,3 +70,4 @@ while True:
       ser.write(b"A" + int_to_byte(int(line[0:2], 16)) + int_to_byte(int(line[2:4], 16)))
     except:
       pass
+

@@ -4,18 +4,7 @@ import serial_helper
 import argparse_helper
 import tastm32
 
-parser = argparse_helper.audio_parser()
-args = parser.parse_args()
-
-if args.serial == None:
-    dev = tastm32.TAStm32(serial_helper.select_serial_port())
-else:
-    dev = tastm32.TAStm32(args.serial)
-
-# connect to device
-ser = dev
-
-def ping(attempt = 0):
+def ping(dev, attempt = 0):
   if (attempt < 5):
     dev.ping()
     result = dev.waitForPong()
@@ -23,7 +12,7 @@ def ping(attempt = 0):
         print("--- Pong Received")
     elif (result == -1):
         print("--- Ping Timeout")
-        ping(attempt+1)
+        ping(dev, attempt+1)
     elif (result == -2):
         print("--- Greater than 1000 bytes read with no response")
     elif (result == -3):
@@ -33,6 +22,18 @@ def ping(attempt = 0):
     else:
         print("--- Unhandled Error")
 
+def main():
+    parser = argparse_helper.audio_parser()
+    args = parser.parse_args()
 
-print("--- Sending Ping Command")
-ping()
+    if args.serial == None:
+        dev = tastm32.TAStm32(serial_helper.select_serial_port())
+    else:
+        dev = tastm32.TAStm32(args.serial)
+
+    print("--- Sending Ping Command")
+    ping(dev)
+
+if __name__ == "__main__":
+    print("if name")
+    main()
