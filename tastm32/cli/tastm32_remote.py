@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-import serial
+import argparse
 import sys
 import time
 import os
 import gc
-import psutil
 import struct
 
+import psutil
+
 import tastm32.internal.serial_helper as serial_helper
-import tastm32.internal.argparse_helper as argparse_helper
 import tastm32
 
 
@@ -40,43 +40,40 @@ def main():
 
     gc.disable()
 
-    parser = argparse_helper.audio_parser()
+    parser = argparse.ArgumentParser(description='Manually control a controller via the TAStm32 device')
+    parser.add_argument('--serial', help='Preselect the serial port')
     args = parser.parse_args()
-
-    DEBUG = args.debug
 
     if args.serial == None:
         dev = tastm32.TAStm32(serial_helper.select_serial_port())
     else:
         dev = tastm32.TAStm32(args.serial)
-    ser = dev
 
-
-    ser.write(b'R')
+    dev.write(b'R')
     time.sleep(0.1)
-    cmd = ser.read(2)
+    cmd = dev.read(2)
     print(bytes(cmd))
 
     # set up the SNES correctly
-    ser.write(b'SAS\x80\x00')
+    dev.write(b'SAS\x80\x00')
     time.sleep(0.1)
-    cmd = ser.read(2)
+    cmd = dev.read(2)
     print(bytes(cmd))
 
-    ser.write(b'QA0')
+    dev.write(b'QA0')
     time.sleep(0.1)
 
-    ser.ser.reset_input_buffer()
+    dev.ser.reset_input_buffer()
 
-    ser.write(bytes([65,0,0]))
+    dev.write(bytes([65,0,0]))
 
     while True:
         line = input()
         if line in bmap:
-            ser.write(bmap[line])
+            dev.write(bmap[line])
         else:
             try:
-                ser.write(b"A" + int_to_byte(int(line[0:2], 16)) + int_to_byte(int(line[2:4], 16)))
+                dev.write(b"A" + int_to_byte(int(line[0:2], 16)) + int_to_byte(int(line[2:4], 16)))
             except:
                 pass
 

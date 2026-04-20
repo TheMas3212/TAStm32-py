@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-import serial
+import argparse
 import time
 
 import tastm32.internal.serial_helper as serial_helper
-import tastm32.internal.argparse_helper as argparse_helper
 import tastm32
 
 def ping(dev, attempt = 0):
@@ -25,7 +24,8 @@ def ping(dev, attempt = 0):
         print("--- Unhandled Error")
 
 def main():
-    parser = argparse_helper.audio_parser()
+    parser = argparse.ArgumentParser(description='Attempt to ping a TAStm32 device')
+    parser.add_argument('--serial', help='Preselect the serial port')
     args = parser.parse_args()
 
     if args.serial == None:

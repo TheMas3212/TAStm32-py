@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-import serial
+import argparse
 import time
 
 import tastm32.internal.serial_helper as serial_helper
-import tastm32.internal.argparse_helper as argparse_helper
 import tastm32
 
 def main():
-    parser = argparse_helper.audio_parser()
+    parser = argparse.ArgumentParser(description='Instruct a TAStm32 device to jump to DFU mode')
+    parser.add_argument('--serial', help='Preselect the serial port')
     args = parser.parse_args()
 
     if args.serial == None:
@@ -15,12 +15,9 @@ def main():
     else:
         dev = tastm32.TAStm32(args.serial)
 
-    # connect to device
-    ser = dev
-
     print("--- Sending command to jump to DFU mode")
 
-    ser.write(b'\xDF')
+    dev.write(b'\xDF')
     time.sleep(0.1)
 
 if __name__ == "__main__":

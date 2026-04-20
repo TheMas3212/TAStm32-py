@@ -1,0 +1,50 @@
+[project]
+name = "tastm32"
+version = "1.0.0"
+authors = [
+  { name="TheMas3212", email="mas3212@gmail.com" }
+]
+description = "Library and Control scripts for a TAStm32 replay device"
+dependencies = [
+  "pyserial>=3.4",
+  "psutil>=5.6.7",
+  "numpy>=2.1.3",
+  "inputs>=0.5",
+  "tasd>=1.0",
+]
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "GPL-3.0-or-later"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/themas3212/TAStm32-py"
+Issues = "https://github.com/themas3212/TAStm32-py/issues"
+
+[project.scripts]
+tastm32-play = "tastm32.cli.tastm32_play:main"
+tastm32-tasd = "tastm32.cli.tastm32_tasd:main"
+tastm32-clear = "tastm32.cli.tastm32_clear:main"
+tastm32-controller = "tastm32.cli.tastm32_controller:cli"
+tastm32-dfu = "tastm32.cli.tastm32_dfu:main"
+tastm32-dumpinfo = "tastm32.cli.tastm32_dumpinfo:main"
+tastm32-ping = "tastm32.cli.tastm32_ping:main"
+tastm32-power = "tastm32.cli.tastm32_power:main"
+tastm32-remote = "tastm32.cli.tastm32_remote:main"
+tastm32-stream-nes-mono = "tastm32.cli.tastm32_stream_nes_mono:main"
+tastm32-stream-snes-stereo = "tastm32.cli.tastm32_stream_snes_stereo:main"
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+  "tastm32",
+  "tastm32.cli",
+  "tastm32.internal",
+]

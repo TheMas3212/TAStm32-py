@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import sys
 import os
 import serial
@@ -7,12 +8,6 @@ import time
 import gc
 
 import tastm32.internal.serial_helper as serial_helper
-import tastm32.internal.argparse_helper as argparse_helper
-import tastm32.internal.r08 as r08
-import tastm32.internal.r16m as r16m
-import tastm32.internal.m64 as m64
-import tastm32.internal.dtm as dtm
-import tastm32.internal.rgen as rgen
 
 DEBUG = False
 
@@ -253,11 +248,11 @@ class TAStm32():
             self.activeRuns[prefix] = False
             raise RuntimeError('Error during setup')
 
-    def main_loop(self, run):
+    def main_loop(self, run_id, blankframe, frame_gen, frame_max = None, latch_count = None):
         global DEBUG
+        latch_count = latch_count or 0
         frame = 0
-        frame_max = len(run.buffer)
-        latchTrain = self.latchTrains[run.run_id]
+        latchTrain = self.latchTrains[run_id]
         ltCarriage = 0
         while True:
             try:
@@ -269,11 +264,11 @@ class TAStm32():
                     c += self.read(numBytes)
                     if numBytes > int_buffer:
                         print ("WARNING: High latch rate detected: " + str(numBytes))
-                latches = c.count(run.run_id)
-                bulk = c.count(run.run_id.lower())
+                latches = c.count(run_id)
+                bulk = c.count(run_id.lower())
                 missed = c.count(b'\xB0')
                 if missed != 0:
-                    run.fn -= missed
+                    latch_count -= missed
                     print('Buffer Overflow x{}'.format(missed))
 
                 # Latch Trains
@@ -306,35 +301,35 @@ class TAStm32():
 
                 for latch in range(latches):
                     try:
-                        data = run.run_id + run.buffer[run.fn]
+                        data = run_id + next(frame_gen)
                         self.write(data)
-                        if run.fn % 100 == 0:
-                            print('Sending Latch: {}'.format(run.fn))
+                        if latch_count % 100 == 0:
+                            print('Sending Latch: {}'.format(latch_count))
                     except IndexError:
                         command = []
-                        command.append(run.run_id + run.blankframe)
+                        command.append(run_id + blankframe)
                         data = b''.join(command)
                         self.write(data)
                         pass
-                    run.fn += 1
+                    latch_count += 1
                     frame += 1
                 for cmd in range(bulk):
                     for packet in range(packets):
                         command = []
                         for latch in range(latches_per_bulk_command//packets):
                             try:
-                                command.append(run.run_id + run.buffer[run.fn])
-                                run.fn += 1
-                                if run.fn % 100 == 0:
-                                    print('Sending Latch: {}'.format(run.fn))
+                                command.append(run_id + next(frame_gen))
+                                latch_count += 1
+                                if latch_count % 100 == 0:
+                                    print('Sending Latch: {}'.format(latch_count))
                             except IndexError:
-                                command.append(run.run_id + run.blankframe)
-                                run.fn += 1
+                                command.append(run_id + blankframe)
+                                latch_count += 1
                             frame += 1
                         data = b''.join(command)
                         self.write(data)
-                    self.write(run.run_id.lower())
-                if frame > frame_max:
+                    self.write(run_id.lower())
+                if (frame_max != None) and (frame > frame_max):
                     break
             except serial.SerialException:
                 print('ERROR: Serial Exception caught!')
@@ -343,136 +338,3 @@ class TAStm32():
                 print('^C Exiting')
                 break
 
-class RunObject:
-    def __init__(self, run_id, buffer, fn, blankframe):
-        self.run_id = run_id
-        self.buffer = buffer
-        self.fn = fn
-        self.blankframe = blankframe
-
-def main():
-    global DEBUG
-    global buffer
-    global run_id
-    global fn
-
-    parser = argparse_helper.setup_parser_full()
-
-    args = parser.parse_args()
-
-    if args.transition != None:
-        for transition in args.transition:
-            transition[0] = int(transition[0])
-            if transition[1] == 'A':
-                transition[1] = b'A'
-            elif transition[1] == 'N':
-                transition[1] = b'N'
-            elif transition[1] == 'S':
-                transition[1] = b'S'
-            elif transition[1] == 'H':
-                transition[1] = b'H'
-            elif transition[1] == 'R':
-                transition[1] = b'R'
-
-    if args.latchtrain != '':
-        args.latchtrain = [int(x) for x in args.latchtrain.split(',')]
-
-    DEBUG = args.debug
-
-    args.players = args.players.split(',')
-    for x in range(len(args.players)):
-        args.players[x] = int(args.players[x])
-
-    if args.serial == None:
-        dev = TAStm32(serial_helper.select_serial_port())
-    else:
-        dev = TAStm32(args.serial)
-
-    if args.clock != None:
-        args.clock = int(args.clock)
-        if args.clock < 0 or args.clock > 63:
-            print('ERROR: The clock value must be in the range [0,63]! Exiting.')
-            sys.exit(0)
-
-    try:
-        with open(args.movie, 'rb') as f:
-            data = f.read()
-    except:
-        print('ERROR: the specified file (' + args.movie + ') failed to open')
-        sys.exit(0)
-
-    dev.reset()
-    
-    if args.relayreset:
-        dev.enable_relay()
-        
-    if args.controller:
-        dev.enable_controller()
-    
-    if args.hardreset or args.softreset or args.relayreset:
-        dev.power_off()
-        if args.hardreset or args.relayreset:
-            time.sleep(2.0)
-            
-    run_id = dev.setup_run(args.console, args.players, args.dpcm, args.overread, args.clock)
-    if run_id == None:
-        raise RuntimeError('ERROR')
-        sys.exit()
-    if args.console == 'n64':
-        buffer = m64.read_input(data, args.players)
-        blankframe = b'\x00\x00\x00\x00' * len(args.players)
-    elif args.console == 'snes':
-        buffer = r16m.read_input(data, args.players)
-        blankframe = b'\x00\x00' * len(args.players)
-    elif args.console == 'nes':
-        buffer = r08.read_input(data, args.players)
-        blankframe = b'\x00' * len(args.players)
-    elif args.console == 'gc':
-        buffer = dtm.read_input(data)
-        blankframe = b'\x00\x00\x00\x00\x00\x00\x00\x00' * len(args.players)
-    elif args.console == 'genesis':
-        buffer = rgen.read_input(data, args.players)
-        blankframe = b'\x00\x00' * len(args.players)
-
-    if args.melee:
-        dev.write(b'M')
-
-    # Transitions
-    if args.transition != None:
-        for transition in args.transition:
-            dev.send_transition(run_id, *transition)
-    # Send Blank Frames
-    for blank in range(args.blank):
-        data = run_id + blankframe
-        dev.write(data)
-    print(f'Sending Blank Latches: {args.blank}')
-    fn = 0
-    for latch in range(int_buffer-args.blank):
-        try:
-            data = run_id + buffer[fn]
-            dev.write(data)
-            if fn % 100 == 0:
-                print(f'Sending Latch: {fn}')
-            fn += 1
-        except IndexError:
-            pass
-    err = dev.read(int_buffer)
-    fn -= err.count(b'\xB0')
-    if err.count(b'\xB0') != 0:
-        print('Buffer Overflow x{}'.format(err.count(b'\xB0')))
-    # Latch trains
-    if args.latchtrain != '':
-        dev.send_latchtrain(run_id, args.latchtrain)
-
-    run = RunObject(run_id, buffer, fn, blankframe)
-    print('Main Loop Start')
-    if not args.nobulk:
-        dev.set_bulk_data_mode(run_id, b"1")
-    dev.power_on()
-    dev.main_loop(run)
-    print('Exiting')
-    dev.ser.close()
-    sys.exit(0)
-
-if __name__ == '__main__':
-    main()

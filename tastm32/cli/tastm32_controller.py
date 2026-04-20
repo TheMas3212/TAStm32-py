@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+import argparse
 import time
 import multiprocessing as mp
 import queue
+
 from inputs import devices
 
 import tastm32.internal.serial_helper as serial_helper
-import tastm32.internal.argparse_helper as argparse_helper
 import tastm32
 
 #Triggers: 0-255
@@ -45,16 +46,16 @@ N64_Z = 0x20000000
 
 def init():
     global players
-    global ser
+    global dev
     # try and connect to the TAStm32
-    parser = argparse_helper.audio_parser()
+    parser = argparse.ArgumentParser(description='Passthrough a usb controller via a TAStm32 device')
+    parser.add_argument('--serial', help='Preselect the serial port')
     args = parser.parse_args()
 
     if args.serial == None:
         dev = tastm32.TAStm32(serial_helper.select_serial_port())
     else:
         dev = tastm32.TAStm32(args.serial)
-    ser = dev
 
     # BEGIN player selection
     numPlayers = int(input("How many players (1 or 2)? "))
@@ -82,38 +83,38 @@ def init():
     # END USB controller selection
 
     # initialize tastm32
-    ser.write(b'R')
+    dev.write(b'R')
     time.sleep(0.1)
-    cmd = ser.read(2)
+    cmd = dev.read(2)
     print(bytes(cmd))
 
     # make sure nothing is buffered
-    ser.enable_controller()
+    dev.enable_controller()
 
     # set up the N64 correctly
     if numPlayers == 1:
-        ser.write(b'SAM\x80\x00')
+        dev.write(b'SAM\x80\x00')
     elif numPlayers == 2:
-        ser.write(b'SAM\x88\x00')
+        dev.write(b'SAM\x88\x00')
     else:
         print("ERROR: It should be impossible to reach this line of code! Exiting....")
         exit(0)
     time.sleep(0.1)
-    cmd = ser.read(2)
+    cmd = dev.read(2)
     print(bytes(cmd))
 
     # no bulk transfer
-    ser.write(b'QA0')
+    dev.write(b'QA0')
     time.sleep(0.1)
 
     # clear the input buffer
-    ser.ser.reset_input_buffer()
+    dev.ser.reset_input_buffer()
     
     # start with gamepad neutral
     if len(players) == 1:
-        ser.write(bytes([65,0,0,0,0]))
+        dev.write(bytes([65,0,0,0,0]))
     elif len(players) == 2:
-        ser.write(bytes([65,0,0,0,0,0,0,0,0]))
+        dev.write(bytes([65,0,0,0,0,0,0,0,0]))
 
 def readController(controller_id, queue):
     controller = devices.gamepads[controller_id]
@@ -126,7 +127,7 @@ def readController(controller_id, queue):
         queue.put(events)
 
 def main():
-    global ser
+    global dev
     global players
     # keep track of controller state
     data_to_tastm32 = []
@@ -221,7 +222,7 @@ def main():
                                     data_to_tastm32[p] |= 0x00080000
                 # prepare message to the replay device
                 output_string += data_to_tastm32[p].to_bytes(4, "big")
-            ser.write(output_string) # send it!
+            dev.write(output_string) # send it!
         # END main loop
     except KeyboardInterrupt:
         pass
