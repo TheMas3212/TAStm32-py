@@ -43,7 +43,7 @@ Provides the following executables
 ## API Usage/Examples
 
 
-Read a file in a print all the packets in it
+Simple script that setups the device and pings it, wating for a response
 ```py
 from tastm32 import TAStm32
 dev = tastm32.TAStm32("/dev/ttyACM0")
