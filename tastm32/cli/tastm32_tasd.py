@@ -307,4 +307,5 @@ def main():
     print('Exiting')
 
 if __name__ == "__main__":
+    print("WARNING TASD support is experimental")
     main()

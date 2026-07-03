@@ -10,6 +10,11 @@ import time
 import numpy as np
 from itertools import chain
 
+'''
+Script for translating a midi device into a controller
+ - Requires numpy=2.1.3
+'''
+
 data_to_tastm32 = 0
 prev_data = 0
 MOVEMENT_VELOCITY_FILTER = 18

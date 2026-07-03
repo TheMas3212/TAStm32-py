@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import sys
 
+'''
+Standalone script tto convert dtm files for SSBM
+'''
 def main():
     pollNumber = 0
     try:

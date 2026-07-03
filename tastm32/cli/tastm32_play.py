@@ -87,19 +87,24 @@ def main():
         raise RuntimeError('ERROR')
         sys.exit()
     if args.console == 'n64':
-        buffer = m64.read_input(data, args.players)
+        input_count = m64.input_count(data, args.players)
+        inputs = m64.read_input(data, args.players)
         blankframe = b'\x00\x00\x00\x00' * len(args.players)
     elif args.console == 'snes':
-        buffer = r16m.read_input(data, args.players)
+        input_count = r16m.input_count(data, args.players)
+        inputs = r16m.read_input(data, args.players)
         blankframe = b'\x00\x00' * len(args.players)
     elif args.console == 'nes':
-        buffer = r08.read_input(data, args.players)
+        input_count = r08.input_count(data, args.players)
+        inputs = r08.read_input(data, args.players)
         blankframe = b'\x00' * len(args.players)
     elif args.console == 'gc':
-        buffer = dtm.read_input(data)
+        input_count = dtm.input_count(data)
+        inputs = dtm.read_input(data)
         blankframe = b'\x00\x00\x00\x00\x00\x00\x00\x00' * len(args.players)
     elif args.console == 'genesis':
-        buffer = rgen.read_input(data, args.players)
+        input_count = rgen.input_count(data, args.players)
+        inputs = rgen.read_input(data, args.players)
         blankframe = b'\x00\x00' * len(args.players)
 
     if args.melee:
@@ -117,8 +122,9 @@ def main():
     def frame_generator():
         for blank in range(args.blank):
             yield blankframe
-        for latch in range(len(buffer)):
-            yield buffer[latch]
+        yield from inputs
+        # for latch in range(len(buffer)):
+        #     yield buffer[latch]
         while True:
             yield blankframe
 
@@ -135,7 +141,7 @@ def main():
     if not args.nobulk:
         dev.set_bulk_data_mode(run_id, b"1")
     dev.power_on()
-    dev.main_loop(run_id, blankframe, frame_gen, len(buffer))
+    dev.main_loop(run_id, blankframe, frame_gen, input_count)
     print('Exiting')
 
 if __name__ == "__main__":

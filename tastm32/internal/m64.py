@@ -44,29 +44,20 @@ def read_input(data, players=[1], header=None):
         raise RuntimeError('Movie version invalid')
     input_struct = struct.Struct('4s'*header['controllers'])
     input_iter = input_struct.iter_unpack(data[start:])
-    input_data = []
     for frame in input_iter:
         fd = b''
         for player in players:
             fd += frame[PLAYER_MAP[player]]
-        input_data.append(fd)
-    return input_data
+        yield fd
 
-def main():
-    try:
-        file = sys.argv[1]
-    except:
-        print(f'Usage {sys.argv[0]} <movie file>')
-        sys.exit()
-    with open(file, 'rb') as f:
-        data = f.read()
-    header = read_header(data)
-    for k, v in header.items():
-        if 'unused' in k:
-            continue
-        else:
-            print('{}: {}'.format(k, v))
-    inputs = read_input(data, header)
-
-if __name__ == '__main__':
-    main()
+def input_count(data, players=[1], header=None):
+    if header == None:
+        header = read_header(data)
+    if header['version'] == 1 or header['version'] == 2:
+        start = 0x200
+    elif header['version'] == 3:
+        start = 0x400
+    else:
+        raise RuntimeError('Movie version invalid')
+    input_struct = struct.Struct('4s'*header['controllers'])
+    return (len(data) - start) / frame_struct.size

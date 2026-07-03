@@ -67,33 +67,26 @@ def read_input(data, header=None):
     start = 0x100
     input_struct = struct.Struct('8s'*controllerCount)
     input_iter = input_struct.iter_unpack(data[start:])
-    input_data = []
-    #alternate = 0
     for frame in input_iter:
-        #alternate = 1 - alternate
-        #if alternate == 1:
-        #    continue;
         fd = b''
         for pd in frame:
             fd += _process_input(pd)
-        input_data.append(fd)
-    return input_data
+        yield fd
 
-def main():
-    try:
-        file = sys.argv[1]
-    except:
-        print(f'Usage {sys.argv[0]} <movie file>')
-        sys.exit()
-    with open(file, 'rb') as f:
-        data = f.read()
-    header = read_header(data)
-    for k, v in header.items():
-        if 'unused' in k:
-            continue
-        else:
-            print('{}: {}'.format(k, v))
-    inputs = read_input(data, header)
-
-if __name__ == '__main__':
-    main()
+def input_count(data, header=None):
+    if header == None:
+        header = read_header(data)
+    controllerCount = 0
+    if header['Controllers'] & 0x1 != 0:
+        controllerCount += 1
+    if header['Controllers'] & 0x2 != 0:
+        controllerCount += 1
+    if header['Controllers'] & 0x4 != 0:
+        controllerCount += 1
+    if header['Controllers'] & 0x8 != 0:
+        controllerCount += 1
+    if header['Controllers'] & 0xf0 != 0:
+        raise RuntimeError('Movie Has Unsupported Controllers')
+    start = 0x100
+    input_struct = struct.Struct('8s'*controllerCount)
+    return (len(data)-0x100) / frame_struct.size

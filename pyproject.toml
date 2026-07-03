@@ -2,13 +2,14 @@
 name = "tastm32"
 version = "1.0.0"
 authors = [
-  { name="TheMas3212", email="mas3212@gmail.com" }
+  { name="TheMas3212", email="mas3212@gmail.com" },
+  { name="Ownasaurus", email="Ownasaurus@users.noreply.github.com" },
+  { name="rasteri", email="andy@rasteri.com" }
 ]
 description = "Library and Control scripts for a TAStm32 replay device"
 dependencies = [
   "pyserial>=3.4",
   "psutil>=5.6.7",
-  "numpy>=2.1.3",
   "inputs>=0.5",
   "tasd>=1.0",
 ]
