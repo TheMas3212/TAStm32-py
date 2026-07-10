@@ -1,6 +1,6 @@
 [project]
 name = "tastm32"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
   { name="TheMas3212", email="mas3212@gmail.com" },
   { name="Ownasaurus", email="Ownasaurus@users.noreply.github.com" },

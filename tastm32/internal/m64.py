@@ -60,4 +60,4 @@ def input_count(data, players=[1], header=None):
     else:
         raise RuntimeError('Movie version invalid')
     input_struct = struct.Struct('4s'*header['controllers'])
-    return (len(data) - start) / frame_struct.size
+    return (len(data) - start) / input_struct.size

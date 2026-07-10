@@ -89,4 +89,4 @@ def input_count(data, header=None):
         raise RuntimeError('Movie Has Unsupported Controllers')
     start = 0x100
     input_struct = struct.Struct('8s'*controllerCount)
-    return (len(data)-0x100) / frame_struct.size
+    return (len(data)-0x100) / input_struct.size
