@@ -65,6 +65,7 @@ def main():
     overread = False
     blankframes = 0
     cli_blanks = args.blank
+    invert_inputs = False
 
     CONSOLE_TYPE = tasd.packets.general.CONSOLE_TYPE
     PacketType = tasd.constants.PacketType
@@ -88,8 +89,10 @@ def main():
                 console = 'n64'
             if packet.console == CONSOLE_TYPE.SNES:
                 console = 'snes'
+                invert_inputs = True
             if packet.console == CONSOLE_TYPE.NES:
                 console = 'nes'
+                invert_inputs = True
             if packet.console == CONSOLE_TYPE.GC:
                 console = 'gc'
             if packet.console == CONSOLE_TYPE.GENESIS:
@@ -283,9 +286,15 @@ def main():
             yield blankframe
         for latch in range(len(inputs[1])):
             if ports[2] == None:
-                yield bytes(x ^ 0xff for x in inputs[1][latch])
+                if invert_inputs:
+                    yield bytes(x ^ 0xff for x in inputs[1][latch])
+                else:
+                    yield bytes(x for x in inputs[1][latch])
             else:
-                yield bytes(x ^ 0xff for x in inputs[1][latch] + inputs[2][latch])
+                if invert_inputs:
+                    yield bytes(x ^ 0xff for x in inputs[1][latch] + inputs[2][latch])
+                else:
+                    yield bytes(x for x in inputs[1][latch] + inputs[2][latch])
         while not break_at_end:
             yield blankframe
 
